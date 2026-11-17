@@ -1,7 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "art:pixelize": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/pixel-art.ps1 pixelize",
-    "art:check": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/pixel-art.ps1 check"
+    "art:pixelize": "node tools/pixel-art.js pixelize",
+    "art:check": "node tools/pixel-art.js check"
+  },
+  "devDependencies": {
+    "pngjs": "7.0.0"
   }
 }
