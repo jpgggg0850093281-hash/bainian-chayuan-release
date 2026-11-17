@@ -25,3 +25,19 @@
 - 整合最新 main，保留兩週 MVP 規劃和視覺修正紀錄。
 - 維持泡茶階段與主角尺寸。瀏覽器未產出驗收截圖，主角比例、倒水遮擋及場景切換仍待確認。
 - 回復方式：回復本分支合併的 PR。
+
+## Windows 與 Mac 開發
+
+1. 安裝 Node.js（建議使用仍受支援的 LTS 版本，最低需 Node.js 18）。
+2. 在專案根目錄執行 `npm install` 安裝美術工具依賴。
+3. 用瀏覽器直接開啟根目錄的 `index.html` 進入遊戲。
+4. 新圖放入 `assets/raw/` 並在 `assets/sizes.json` 登記尺寸。執行 `npm run art:pixelize` 產出圖片，再執行 `npm run art:check`。
+5. `archive/pixel-art.ps1` 保留作為舊版基準，平常開發使用 Node.js 指令。舊工具的色票重新取樣模式仍保留在該腳本。本工具使用既有的固定 48 色色票。
+
+### 2026-11-17 19:08（UTC+8）｜跨平台美術工具
+
+- 分支：chore/cross-platform-tools。以 Node.js 與純 JavaScript 的 pngjs 執行美術轉換與檢查，保留舊 PowerShell 腳本。
+- 加入 LF 與二進位規則，以及 macOS 和 npm 忽略項目。換行獨立成提交。
+- Windows：npm install、art:pixelize、art:check 均通過。六張圖共 748,800 個 RGBA 像素與舊版一致，檔名大小寫檢查未發現不一致。
+- 遊戲原始碼及已發布的圖片沒有內容變更。Mac 和瀏覽器實機未測。
+- 回復方式：回復本 PR 中的工具與換行提交。
