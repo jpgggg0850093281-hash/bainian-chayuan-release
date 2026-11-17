@@ -41,3 +41,10 @@
 - Windows：npm install、art:pixelize、art:check 均通過。六張圖共 748,800 個 RGBA 像素與舊版一致，檔名大小寫檢查未發現不一致。
 - 遊戲原始碼及已發布的圖片沒有內容變更。Mac 和瀏覽器實機未測。
 - 回復方式：回復本 PR 中的工具與換行提交。
+
+### 2026-11-17 19:40（UTC+8）｜建立第 2～7 章獨立資料夾
+
+- 新增 `chapters/chapter-02/` 至 `chapters/chapter-07/`。每章可直接開啟自己的 `index.html` 測試完成按鈕。
+- 組員各自在自己的章節資料夾與分支開發。新增素材放在各章的 `assets/`，完成後開 PR 互相試玩。
+- 最後整合時，會在主畫面加上各章入口，並用 localStorage 的 `bainian-chapter-0X` 判斷紀念幣。本次只建立章節骨架。
+- 回復方式：回復本 PR。
