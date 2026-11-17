@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>百年茶緣｜魚池茶鄉</title>
+  <link rel="stylesheet" href="style.css?v=wide-gate-26">
+  <script src="src/assets/player.js?v=wide-gate-26" defer></script>
+  <script src="script.js?v=wide-gate-26" defer></script>
+</head>
+<body>
+  <main>
+    <canvas id="scene" role="img" aria-label="魚池茶鄉像素風景。青禾站在茶寮外，風掠過茶樹，鳥群飛過山間。"></canvas>
+    <canvas id="hero-layer" aria-hidden="true"></canvas>
+    <header class="scene-heading">
+      <p>魚池茶鄉</p>
+      <h1>百年茶緣</h1>
+      <p id="chapter-caption" class="letter">第一章・雨後的第一壺茶</p>
+    </header>
+    <p id="garden-guide" class="interaction-instruction garden-guide" role="status" hidden></p>
+    <div id="scene-targets" class="scene-targets" aria-label="可互動地點"></div>
+    <section id="chapter-panel" class="chapter-panel" aria-labelledby="chapter-speaker">
+      <button type="button" id="close-chapter" class="close-chapter" aria-label="關閉對話">×</button>
+      <h2 id="chapter-speaker">阿春阿嬤</h2>
+      <p id="chapter-line" role="status">雨停了，青禾。沼田寄了封信來，說想念咱們的茶。妳願意替我泡一壺今年的新茶嗎？</p>
+      <div id="chapter-actions" class="chapter-actions"></div>
+    </section>
+    <p id="scene-status" role="status" class="status">茶鄉風景載入中</p>
+    <section class="scene-controls" aria-label="場景光影">
+      <div class="weather" aria-label="選擇天候">
+        <button type="button" data-weather="morning" aria-pressed="true">清晨</button>
+        <button type="button" data-weather="rain" aria-pressed="false">微雨</button>
+        <button type="button" data-weather="dusk" aria-pressed="false">暮色</button>
+      </div>
+      <div class="scene-utilities">
+        <button type="button" id="story-book" class="motion" aria-controls="chapter-panel">故事</button>
+        <button type="button" id="current-quest" class="motion" aria-controls="chapter-panel" aria-expanded="true">目前任務</button>
+        <button type="button" id="coin-book" class="motion" aria-controls="chapter-panel">紀念幣 <span id="coin-total">0／1</span></button>
+        <button type="button" id="motion" class="motion" aria-pressed="false">暫停動態</button>
+      </div>
+    </section>
+  </main>
+  <dialog id="coin-award" class="coin-award" aria-labelledby="coin-award-title">
+    <h2 id="coin-award-title">獲得紀念幣</h2>
+    <div class="coin-spin" aria-hidden="true"></div>
+    <p>茶寮新手</p>
+    <form method="dialog"><button autofocus>繼續</button></form>
+  </dialog>
+  <dialog id="tea-workbench" class="immersive-dialog" aria-labelledby="tea-title">
+    <header>
+      <h2 id="tea-title">老茶寮・試泡春茶</h2>
+      <form method="dialog"><button aria-label="暫離茶桌">×</button></form>
+    </header>
+    <p id="tea-instruction" class="interaction-instruction" role="status"></p>
+    <div class="gesture-scene tea-scene" id="tea-table">
+      <div class="tea-receiver gesture-target" data-object="grandma" aria-label="阿嬤的手"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></div>
+      <button type="button" class="tea-prop gesture-target" data-object="leaves" aria-label="茶葉"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span><canvas class="scoop-content" width="48" height="45" aria-hidden="true"></canvas>
+      </button>
+      <button type="button" class="tea-prop gesture-target" data-object="pot" aria-label="茶壺"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="tea-prop gesture-target" data-object="kettle" aria-label="水壺"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="tea-prop gesture-target" data-object="cup" aria-label="茶杯"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span><canvas class="cup-surface" width="48" height="42" aria-hidden="true"></canvas></button>
+      <canvas class="tea-effects" width="480" height="270" aria-hidden="true"></canvas>
+      <div class="tea-sip-sequence" aria-hidden="true"><div></div><div></div></div>
+    </div>
+  </dialog>
+  <dialog id="harvest-view" class="immersive-dialog" aria-labelledby="harvest-title">
+    <header>
+      <h2 id="harvest-title">梯田・摘下嫩梢</h2>
+      <form method="dialog"><button aria-label="回到梯田">×</button></form>
+    </header>
+    <p id="harvest-instruction" class="interaction-instruction" role="status"></p>
+    <div class="gesture-scene harvest-scene" id="harvest-scene">
+      <button type="button" class="harvest-shoot gesture-target" data-object="shoot-a" aria-label="左邊的嫩梢"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="harvest-shoot gesture-target" data-object="shoot-b" aria-label="靠近中間的左側嫩梢"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="harvest-shoot gesture-target" data-object="shoot-c" aria-label="右邊的嫩梢"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="harvest-shoot gesture-target" data-object="shoot-d" aria-label="左下嫩梢"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="harvest-shoot gesture-target" data-object="shoot-e" aria-label="右下嫩梢"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <button type="button" class="harvest-shoot gesture-target" data-object="shoot-f" aria-label="最右邊的嫩梢"><span class="interaction-marker" aria-hidden="true"><span>✦</span></span></button>
+      <div class="harvest-basket gesture-target" data-object="basket" aria-label="竹簍"></div>
+      <div class="harvest-front-rim" aria-hidden="true"></div>
+      <canvas id="harvest-pile" class="harvest-pile" width="100" height="52" aria-hidden="true"></canvas>
+      <span id="harvest-loose-leaf" class="harvest-loose-leaf" aria-hidden="true" hidden></span>
+      <span id="harvest-left-leaf" class="harvest-loose-leaf" aria-hidden="true" hidden></span>
+      <img id="harvest-left-hand" class="harvest-hand harvest-left-hand" alt="" draggable="false">
+      <img id="harvest-hand" class="harvest-hand" alt="" draggable="false">
+    </div>
+    <button type="button" id="harvest-finish" class="harvest-finish" hidden>收好竹簍，回梯田</button>
+  </dialog>
+  <dialog id="valve-workbench" class="valve-workbench" aria-labelledby="valve-title">
+    <header>
+      <h2 id="valve-title">水車水閘・修理台</h2>
+      <form method="dialog"><button aria-label="暫離修理台">×</button></form>
+    </header>
+    <p id="valve-instruction" role="status"></p>
+    <div id="valve-machine" class="valve-machine" aria-label="水閥零件與水路">
+      <div class="valve-pipe" aria-hidden="true"></div>
+      <button id="valve-wheel" type="button" class="valve-wheel">總閥</button>
+      <button id="valve-seat" type="button" class="valve-seat">接合處</button>
+      <div class="valve-bolts" aria-label="四顆固定螺帽">
+        <button type="button" data-bolt="0" aria-label="左上螺帽">1</button>
+        <button type="button" data-bolt="1" aria-label="右上螺帽">2</button>
+        <button type="button" data-bolt="3" aria-label="左下螺帽">4</button>
+        <button type="button" data-bolt="2" aria-label="右下螺帽">3</button>
+      </div>
+      <span class="valve-drip" aria-hidden="true"></span>
+    </div>
+    <div id="valve-parts" class="valve-parts" hidden>
+      <button type="button" data-gasket="small">窄環</button>
+      <button type="button" data-gasket="fitted">中環</button>
+      <button type="button" data-gasket="large">寬環</button>
+    </div>
+    <div id="valve-channels" class="valve-channels" hidden>
+      <button type="button" id="send-upstream">打開上坡水閘</button>
+      <button type="button" id="send-downstream">打開下游水閘</button>
+      <p>上坡 <strong id="upstream-level">0</strong>　下游 <strong id="downstream-level">0</strong>　剩水 <strong id="water-reserve">6</strong></p>
+      <button type="button" id="reset-water">收回分水</button>
+    </div>
+    <button type="button" id="finish-valve" hidden>確認試水，回報阿仁伯</button>
+  </dialog>
+</body>
+</html>

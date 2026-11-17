@@ -1,0 +1,7 @@
+{
+  "private": true,
+  "scripts": {
+    "art:pixelize": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/pixel-art.ps1 pixelize",
+    "art:check": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/pixel-art.ps1 check"
+  }
+}
