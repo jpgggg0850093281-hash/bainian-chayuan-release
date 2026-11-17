@@ -164,7 +164,7 @@ async function createScene() {
           }
           warning.textContent = "像素規格待遷移：" + [...artWarnings].join("、");
         }
-        resolve(result);
+        result.decode().then(() => resolve(result), reject);
       };
       result.onerror = reject;
       result.src = source;
@@ -176,11 +176,14 @@ async function createScene() {
   let playerBase;
   let playerSheets;
   try {
-    [backdrop, garden, playerBase, ...playerSheets] = await Promise.all([
+    [backdrop, garden, playerBase, playerSheets] = await Promise.all([
       image("assets/scene-sluice-wide-gate.png"),
       image("assets/hillside-tea.png"),
       image(playerArt.base),
-      ...Object.values(playerArt.sheets).map(path => image(path).catch(() => null))
+      Promise.all(Object.values(playerArt.sheets).map(image)),
+      ...[...Object.values(playerArt.harvest), "assets/game/harvest-canopy.png",
+        "assets/tea-table.png", "assets/tea-props.png", "assets/tea-sprig.png",
+        "assets/tea-sip-frames.png", "assets/tea-coin-frames.png"].map(image)
     ]);
   } catch {
     status.textContent = "場景素材未載入。請確認圖片和網頁放在同一個資料夾。";
@@ -1057,8 +1060,9 @@ async function createScene() {
     const radians = angle * Math.PI / 180;
     const lipX = dx * Math.cos(radians) - dy * Math.sin(radians);
     const lipY = dx * Math.sin(radians) + dy * Math.cos(radians);
-    const clearance = Math.max(14, scene.height * .16);
-    const aligned = { x: receiver.x - center.x - lipX, y: receiver.y - clearance - center.y - lipY };
+    const clearance = phase === "water" ? scene.height * .095 : Math.max(14, scene.height * .16);
+    const streamOffset = phase === "water" ? scene.width * .045 : 0;
+    const aligned = { x: receiver.x + streamOffset - center.x - lipX, y: receiver.y - clearance - center.y - lipY };
     const flowTime = phase === "leaves" ? 1260 : 1250;
     const alignTime = 340;
     const returnTime = 340;
@@ -1073,6 +1077,7 @@ async function createScene() {
     pose(offset.x, offset.y, 0);
     const gridX = Math.round(receiver.x / scene.width * 480);
     const gridY = Math.round(receiver.y / scene.height * 270);
+    const sourceOffset = Math.round(streamOffset / scene.width * 480);
     const fall = Math.round(clearance / scene.height * 270);
     function effects(time, fill) {
       teaEffects.clearRect(0, 0, 480, 270);
@@ -1103,7 +1108,8 @@ async function createScene() {
       const depth = phase === "cup" ? Math.round(6 * (1 - fill)) : 0;
       const length = Math.min(fall + depth, Math.floor(time / 3));
       for (let y = 0; y < length; y += 1) {
-        const x = gridX + Math.round(Math.sin(y / fall * Math.PI) * (cycle + 1) * .6);
+        const progress = Math.min(1, y / Math.max(1, fall - 1));
+        const x = gridX + Math.round(sourceOffset * (1 - progress * progress) + Math.sin(progress * Math.PI) * (cycle + 1) * .6);
         teaEffects.fillStyle = phase === "cup" ? "#d79340" : "#9cc8cd";
         teaEffects.fillRect(x, top + y, 2, 1);
         teaEffects.fillStyle = phase === "cup" ? "#f3ca79" : "#def5e9";
@@ -1934,6 +1940,7 @@ async function createScene() {
 
   resize();
   status.textContent = "";
+  status.closest("main").classList.remove("loading");
   resumeGame();
   installSceneDeveloperTools();
   setPaused(paused);
