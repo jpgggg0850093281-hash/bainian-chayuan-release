@@ -24,7 +24,7 @@ function sampleAxis(inputSize, outputSize) {
   });
 }
 
-function render(input, width, height, palette) {
+function render(input, width, height, palette, dither = true) {
   const output = new PNG({ width, height });
   const columns = sampleAxis(input.width, width);
   const rows = sampleAxis(input.height, height);
@@ -52,36 +52,99 @@ function render(input, width, height, palette) {
         output.data[offset + 3] = 0;
         continue;
       }
-      const dither = (bayer[(y % 4) * 4 + x % 4] - 7.5) * .85;
-      r = r / opacity + dither;
-      g = g / opacity + dither;
-      b = b / opacity + dither;
-      let best = palette[0];
-      let distance = Infinity;
-      for (const color of palette) {
-        const dr = r - color[0], dg = g - color[1], db = b - color[2];
-        const score = dr * dr * .25 + dg * dg * .55 + db * db * .20;
-        if (score < distance) {
-          best = color;
-          distance = score;
-        }
-      }
-      output.data.set(best, offset);
+      const rgb = [r / opacity, g / opacity, b / opacity];
+      const color = palette ? nearest(rgb, palette, x, y, dither) :
+        rgb.map(value => Math.max(0, Math.min(255, Math.round(value))));
+      output.data.set(color, offset);
       output.data[offset + 3] = 255;
     }
   }
   return output;
 }
 
-function check(image, width, height, accepted) {
+function nearest([r, g, b], palette, x, y, enabled) {
+  const dither = enabled ? (bayer[(y % 4) * 4 + x % 4] - 7.5) * .85 : 0;
+  r = r + dither;
+  g = g + dither;
+  b = b + dither;
+  let best = palette[0];
+  let distance = Infinity;
+  for (const color of palette) {
+    const dr = r - color[0], dg = g - color[1], db = b - color[2];
+    const score = dr * dr * .25 + dg * dg * .55 + db * db * .20;
+    if (score < distance) {
+      best = color;
+      distance = score;
+    }
+  }
+  return best;
+}
+
+function colorBox(samples) {
+  const low = [255, 255, 255], high = [0, 0, 0];
+  let count = 0;
+  for (const { rgb, weight } of samples) {
+    count += weight;
+    rgb.forEach((value, channel) => {
+      low[channel] = Math.min(low[channel], value);
+      high[channel] = Math.max(high[channel], value);
+    });
+  }
+  const ranges = high.map((value, channel) => value - low[channel]);
+  const range = Math.max(...ranges);
+  return { samples, count, channel: ranges.indexOf(range), score: samples.length > 1 ? range * count : 0 };
+}
+
+function adaptivePalette(image, limit) {
+  const histogram = new Map();
+  for (let offset = 0; offset < image.data.length; offset += 4) {
+    if (image.data[offset + 3] === 0) continue;
+    const color = image.data.readUIntBE(offset, 3);
+    histogram.set(color, (histogram.get(color) ?? 0) + 1);
+  }
+  if (!histogram.size) return [];
+  const boxes = [colorBox(Array.from(histogram, ([color, weight]) =>
+    ({ rgb: [color >> 16, (color >> 8) & 255, color & 255], weight })))];
+  while (boxes.length < limit) {
+    const best = boxes.reduce((index, box, i) => box.score > boxes[index].score ? i : index, 0);
+    const { samples, count, channel, score } = boxes[best];
+    if (!score) break;
+    samples.sort((a, b) => a.rgb[channel] - b.rgb[channel]);
+    let split = 0, weight = 0;
+    do { weight += samples[split++].weight; } while (weight < count / 2 && split < samples.length - 1);
+    boxes.splice(best, 1, colorBox(samples.slice(0, split)), colorBox(samples.slice(split)));
+  }
+  return boxes.map(({ samples, count }) => [0, 1, 2].map(channel =>
+    Math.round(samples.reduce((sum, sample) => sum + sample.rgb[channel] * sample.weight, 0) / count)));
+}
+
+function renderAdaptive(input, width, height, limit, dither) {
+  const output = render(input, width, height, null);
+  const palette = adaptivePalette(output, limit);
+  for (let offset = 0; offset < output.data.length; offset += 4) {
+    if (output.data[offset + 3] === 0) continue;
+    const pixel = offset / 4;
+    const rgb = output.data.subarray(offset, offset + 3);
+    output.data.set(nearest(rgb, palette, pixel % width, Math.floor(pixel / width), dither), offset);
+  }
+  return output;
+}
+
+function check(image, width, height, accepted, limit) {
   if (image.width !== width || image.height !== height) return 'wrong dimensions';
+  const used = new Set();
   for (let offset = 0; offset < image.data.length; offset += 4) {
     const alpha = image.data[offset + 3];
     const pixel = offset / 4;
     const position = `${pixel % width},${Math.floor(pixel / width)}`;
     if (alpha !== 0 && alpha !== 255) return `partial opacity at ${position}`;
-    if (alpha === 255 && !accepted.has(image.data.readUIntBE(offset, 3))) {
-      return `color outside palette at ${position}`;
+    if (alpha === 0) continue;
+    const color = image.data.readUIntBE(offset, 3);
+    if (limit === undefined) {
+      if (!accepted.has(color)) return 'color outside palette at ' + position;
+    } else {
+      used.add(color);
+      if (used.size > limit) return 'more than ' + limit + ' colors';
     }
   }
   return null;
@@ -115,14 +178,24 @@ function run(mode) {
       fail(file, 'no PNG size entry');
       continue;
     }
-    const [width, height] = size;
+    const settings = Array.isArray(size) ? { size } : size;
+    const { size: dimensions, colors: limit, dither = true } = settings;
+    if (!Array.isArray(dimensions) || dimensions.length !== 2 ||
+        !dimensions.every(value => Number.isSafeInteger(value) && value > 0) ||
+        (limit !== undefined && (!Number.isInteger(limit) || limit < 1 || limit > 128)) ||
+        typeof dither !== 'boolean') {
+      fail(file, 'invalid size, colors (1–128), or dither setting');
+      continue;
+    }
+    const [width, height] = dimensions;
     const image = readPng(path.join(source, file));
     if (mode === 'pixelize') {
-      const output = render(image, width, height, palette);
+      const output = limit === undefined ? render(image, width, height, palette, dither) :
+        renderAdaptive(image, width, height, limit, dither);
       fs.writeFileSync(path.join(destination, file), PNG.sync.write(output));
       console.log(`Rendered ${file} ${width}x${height}`);
     } else {
-      const error = check(image, width, height, accepted);
+      const error = check(image, width, height, accepted, limit);
       if (error) fail(file, error);
       else console.log(`PASS ${file}`);
     }
