@@ -805,7 +805,6 @@ async function createScene() {
   const teaEffects = teaTable.querySelector(".tea-effects").getContext("2d");
   const cupSurface = teaTable.querySelector(".cup-surface").getContext("2d");
   const scoopCanvas = teaTable.querySelector(".scoop-content").getContext("2d");
- fix/tea-pour-and-sip
   // tea-props.png (2172×724): the cup's CSS background size and position give a
   // 483×420 crop from (1675, 202). Scanning across the rim at y=317 and x=1890
   // puts the inner edges at x=1753–2031 and y=237–399. Subtract the crop origin
@@ -846,30 +845,6 @@ async function createScene() {
         cupSurface.fillRect(x, y, 1, 1);
       }
     }
-
-  const cupOpening = { x: 21, y: 10, rx: 13, ry: 6 };
-  const cupLevelY = level => 14 - level * 4;
-  function drawCup(level) {
-    cupSurface.clearRect(0, 0, 48, 42);
-    if (level <= 0) return;
-    const { x, y, rx, ry } = cupOpening;
-    const surfaceY = cupLevelY(level);
-    const radiusX = 2 + level * 10;
-    const radiusY = .4 + level * 4;
-    const color = cupSurface.createLinearGradient(0, surfaceY - radiusY, 0, surfaceY + radiusY);
-    color.addColorStop(0, "#98541e");
-    color.addColorStop(.6, "#be781e");
-    color.addColorStop(1, "#cf902e");
-    cupSurface.save();
-    cupSurface.beginPath();
-    cupSurface.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
-    cupSurface.clip();
-    cupSurface.beginPath();
-    cupSurface.ellipse(x, surfaceY, radiusX, radiusY, 0, 0, 2 * Math.PI);
-    cupSurface.fillStyle = color;
-    cupSurface.fill();
-    cupSurface.restore();
- main
   }
 
   const dryTeaPalette = ["#211610", "#36241a", "#563827", "#795137"];
@@ -1097,25 +1072,17 @@ async function createScene() {
     const into = target.getBoundingClientRect();
     // Anchors are measured inside the cropped sprite, at the lip and the opening.
     const lip = { leaves: [.20, .88], water: [.137, .572], cup: [.096, .36] }[phase];
-fix/tea-pour-and-sip
     const opening = { leaves: [.50, .24], water: [.49, .21], cup: [cupOpening.x / 48, cupOpening.y / 42] }[phase];
-
-    const opening = { leaves: [.50, .24], water: [.49, .21], cup: [cupOpening.x / 48, .29] }[phase];
- main
     const receiver = { x: into.left - scene.left + into.width * opening[0], y: into.top - scene.top + into.height * opening[1] };
     const center = { x: from.left - scene.left + from.width / 2, y: from.top - scene.top + from.height / 2 };
     const dx = (lip[0] - .5) * from.width;
     const dy = (lip[1] - .5) * from.height;
-    const angle = { leaves: -35, water: -24, cup: -30 }[phase];
+    const angle = phase === "leaves" ? -35 : -30;
     const radians = angle * Math.PI / 180;
     const lipX = dx * Math.cos(radians) - dy * Math.sin(radians);
     const lipY = dx * Math.sin(radians) + dy * Math.cos(radians);
     const clearance = phase === "water" ? scene.height * .115 : Math.max(14, scene.height * .16);
- fix/tea-pour-and-sip
     const streamOffset = phase === "leaves" ? 0 : scene.width * .027;
-
-    const streamOffset = scene.width * { leaves: 0, water: .008, cup: .016 }[phase];
- main
     const aligned = { x: receiver.x + streamOffset - center.x - lipX, y: receiver.y - clearance - center.y - lipY };
     const flowTime = phase === "leaves" ? 1260 : 1250;
     const alignTime = 340;
@@ -1158,7 +1125,6 @@ fix/tea-pour-and-sip
         }
         return;
       }
- fix/tea-pour-and-sip
       const tea = phase === "cup";
       const depth = tea ? Math.round((cupLevelY(fill) - cupOpening.y) / 42 * into.height / scene.height * 270) : 0;
       const drop = fall + depth;
@@ -1178,43 +1144,6 @@ fix/tea-pour-and-sip
         teaEffects.fillStyle = highlight;
         teaEffects.fillRect(gridX - 2, gridY + depth - 1, 1, 1);
         teaEffects.fillRect(gridX + 2, gridY + depth, 1, 1);
-
-      if (phase === "water") {
-        const length = Math.min(fall + 1, Math.floor(time / 3));
-        const glint = Math.floor(time / 28);
-        for (let y = 0; y < length; y += 1) {
-          const progress = y / fall;
-          const x = gridX + Math.round(sourceOffset * (1 - progress * progress));
-          teaEffects.fillStyle = "#9cc8cd";
-          teaEffects.fillRect(x - 1, top + y, 3, 1);
-          teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#def5e9" : "#b9dfe3";
-          teaEffects.fillRect(x, top + y, 1, 1);
-        }
-        if (length === fall + 1 && glint % 8 < 3) {
-          teaEffects.fillStyle = "#def5e9";
-          teaEffects.fillRect(gridX - 2, gridY - 2, 1, 1);
-          teaEffects.fillRect(gridX + 4, gridY - 3, 1, 1);
-        }
-        return;
-      }
-      const glint = Math.floor(time / 28);
-      const depth = Math.round((cupLevelY(fill) / 42 - opening[1]) * into.height / scene.height * 270);
-      const length = Math.min(fall + depth + 1, Math.floor(time / 3));
-      for (let y = 0; y < length; y += 1) {
-        const progress = y / (fall + depth);
-        // Horizontal travel is steady while gravity accelerates the stream downward.
-        const travel = (Math.sqrt(.0625 + 3 * progress) - .25) / 1.5;
-        const x = gridX + Math.round(sourceOffset * (1 - travel));
-        teaEffects.fillStyle = "#d79340";
-        teaEffects.fillRect(x - 1, top + y, 2, 1);
-        teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#f3ca79" : "#e8ac54";
-        teaEffects.fillRect(x, top + y, 1, 1);
-      }
-      if (length === fall + depth + 1 && glint % 8 < 3) {
-        teaEffects.fillStyle = "#f3ca79";
-        teaEffects.fillRect(gridX - 2, gridY + depth, 1, 1);
-        teaEffects.fillRect(gridX + 2, gridY + depth - 1, 1, 1);
- main
       }
     }
     function frame(now) {
@@ -1228,11 +1157,7 @@ fix/tea-pour-and-sip
         pose(aligned.x, aligned.y, angle);
         const time = elapsed - alignTime;
         const fill = Math.max(0, (time - 150) / (flowTime - 150));
- fix/tea-pour-and-sip
         if (phase === "cup") drawCup(fill, time);
-
-        if (phase === "cup") drawCup(fill);
- main
         effects(time, fill);
       } else if (elapsed < alignTime + flowTime + returnTime) {
         teaEffects.clearRect(0, 0, 480, 270);
