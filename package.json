@@ -2,7 +2,9 @@
   "private": true,
   "scripts": {
     "art:pixelize": "node tools/pixel-art.js pixelize",
-    "art:check": "node tools/pixel-art.js check"
+    "art:check": "node tools/pixel-art.js check",
+    "badge:build": "node tools/badge-assets.js build",
+    "badge:check": "node tools/badge-assets.js check"
   },
   "devDependencies": {
     "pngjs": "7.0.0"

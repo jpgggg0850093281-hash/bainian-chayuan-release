@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>百年茶緣｜徽章領取測試</title>
+  <link rel="stylesheet" href="../../assets/badges/badge-award.css">
+  <style>
+    body { margin: 0; color: #ffe9bf; background: #102018; font: 16px/1.5 "Badge Cubic 11", monospace; }
+    main { max-width: 32rem; margin: auto; padding: max(1rem, env(safe-area-inset-top)) 1rem 2rem; }
+    ul { list-style: none; padding: 0; display: grid; gap: .55rem; }
+    li button { width: 100%; min-height: 44px; padding: .65rem; border: 1px solid #c89d52; background: #1d392c; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+  </style>
+  <script src="../../assets/badges/badges.js" defer></script>
+  <script src="../../assets/badges/badge-award.js" defer></script>
+</head>
+<body>
+  <main>
+    <h1>章節徽章領取測試</h1>
+    <p>選擇一章試看。播放時可點擊畫面跳到正面。</p>
+    <ul id="badge-list"></ul>
+  </main>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const list = document.querySelector("#badge-list");
+      for (const badge of window.BAINIAN_BADGES) {
+        const item = document.createElement("li");
+        const button = document.createElement("button");
+        button.textContent = `${badge.chapter}・${badge.chapterTitle}${badge.status === "todo" ? "（尚未完成）" : ""}`;
+        button.addEventListener("click", () => window.showBadgeAward(badge.chapter));
+        item.append(button);
+        list.append(item);
+      }
+    });
+  </script>
+</body>
+</html>
