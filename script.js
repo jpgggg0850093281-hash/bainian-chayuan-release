@@ -806,26 +806,27 @@ async function createScene() {
   const cupSurface = teaTable.querySelector(".cup-surface").getContext("2d");
   const scoopCanvas = teaTable.querySelector(".scoop-content").getContext("2d");
   const cupOpening = { x: 21, y: 10, rx: 13, ry: 6 };
-  const cupRows = [
-    [],
-    [[18, 24], [16, 26], [16, 26], [18, 24]],
-    [[17, 25], [14, 28], [13, 29], [13, 29], [15, 27], [17, 25]],
-    [[18, 24], [14, 28], [12, 30], [11, 31], [11, 31], [12, 30], [14, 28], [17, 25]]
-  ];
-  function drawCup(level, time = 0) {
+  const cupLevelY = level => 14 - level * 4;
+  function drawCup(level) {
     cupSurface.clearRect(0, 0, 48, 42);
-    const rows = cupRows[level];
-    const top = 15 - rows.length;
-    rows.forEach(([left, right], index) => {
-      const y = top + index;
-      for (let x = left; x <= right; x += 1) {
-        const { x: cx, y: cy, rx, ry } = cupOpening;
-        if (((x - cx) / rx) ** 2 + ((y - cy) / ry) ** 2 > 1) continue;
-        cupSurface.fillStyle = index === 0 ? "#98541e" :
-          y === top + 2 && x >= 16 + Math.floor(time / 100) % 4 && x < 21 ? "#efb64b" : "#be781e";
-        cupSurface.fillRect(x, y, 1, 1);
-      }
-    });
+    if (level <= 0) return;
+    const { x, y, rx, ry } = cupOpening;
+    const surfaceY = cupLevelY(level);
+    const radiusX = 2 + level * 10;
+    const radiusY = .4 + level * 4;
+    const color = cupSurface.createLinearGradient(0, surfaceY - radiusY, 0, surfaceY + radiusY);
+    color.addColorStop(0, "#98541e");
+    color.addColorStop(.6, "#be781e");
+    color.addColorStop(1, "#cf902e");
+    cupSurface.save();
+    cupSurface.beginPath();
+    cupSurface.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
+    cupSurface.clip();
+    cupSurface.beginPath();
+    cupSurface.ellipse(x, surfaceY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+    cupSurface.fillStyle = color;
+    cupSurface.fill();
+    cupSurface.restore();
   }
 
   const dryTeaPalette = ["#211610", "#36241a", "#563827", "#795137"];
@@ -950,7 +951,7 @@ async function createScene() {
     const [source, target, instruction] = teaSteps[tea.phase];
     teaTable.dataset.phase = tea.phase;
     if (tea.phase !== "steep" && !pouring) teaEffects.clearRect(0, 0, 480, 270);
-    drawCup(tea.phase === "serve" ? 3 : 0);
+    drawCup(tea.phase === "serve" ? 1 : 0);
     if (tea.phase === "leaves") drawScoop();
     teaInstruction.hidden = false;
     teaInstruction.textContent = message ?? instruction;
@@ -1052,8 +1053,8 @@ async function createScene() {
     const from = source.getBoundingClientRect();
     const into = target.getBoundingClientRect();
     // Anchors are measured inside the cropped sprite, at the lip and the opening.
-    const lip = { leaves: [.20, .88], water: [.12, .55], cup: [.08, .37] }[phase];
-    const opening = phase === "cup" ? [.43, .29] : [.50, .24];
+    const lip = { leaves: [.20, .88], water: [.137, .572], cup: [.08, .37] }[phase];
+    const opening = { leaves: [.50, .24], water: [.49, .21], cup: [cupOpening.x / 48, .29] }[phase];
     const receiver = { x: into.left - scene.left + into.width * opening[0], y: into.top - scene.top + into.height * opening[1] };
     const center = { x: from.left - scene.left + from.width / 2, y: from.top - scene.top + from.height / 2 };
     const dx = (lip[0] - .5) * from.width;
@@ -1107,17 +1108,17 @@ async function createScene() {
         return;
       }
       if (phase === "water") {
-        const length = Math.min(fall, Math.floor(time / 3));
+        const length = Math.min(fall + 1, Math.floor(time / 3));
         const glint = Math.floor(time / 28);
         for (let y = 0; y < length; y += 1) {
-          const progress = y / (fall - 1);
+          const progress = y / fall;
           const x = gridX + Math.round(sourceOffset * (1 - progress * progress));
           teaEffects.fillStyle = "#9cc8cd";
-          teaEffects.fillRect(x, top + y, 3, 1);
+          teaEffects.fillRect(x - 1, top + y, 3, 1);
           teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#def5e9" : "#b9dfe3";
-          teaEffects.fillRect(x + 1, top + y, 1, 1);
+          teaEffects.fillRect(x, top + y, 1, 1);
         }
-        if (length === fall && glint % 8 < 3) {
+        if (length === fall + 1 && glint % 8 < 3) {
           teaEffects.fillStyle = "#def5e9";
           teaEffects.fillRect(gridX - 2, gridY - 2, 1, 1);
           teaEffects.fillRect(gridX + 4, gridY - 3, 1, 1);
@@ -1125,8 +1126,8 @@ async function createScene() {
         return;
       }
       const cycle = Math.floor(time / 80) % 3;
-      const depth = Math.round(6 * (1 - fill));
-      const length = Math.min(fall + depth, Math.floor(time / 3));
+      const depth = Math.round((cupLevelY(fill) / 42 - opening[1]) * into.height / scene.height * 270);
+      const length = Math.min(fall + depth + 1, Math.floor(time / 3));
       for (let y = 0; y < length; y += 1) {
         const progress = Math.min(1, y / Math.max(1, fall - 1));
         const x = gridX + Math.round(Math.sin(progress * Math.PI) * (cycle + 1) * .6);
@@ -1135,7 +1136,7 @@ async function createScene() {
         teaEffects.fillStyle = "#f3ca79";
         if ((y + cycle) % 4 !== 0) teaEffects.fillRect(x, top + y, 1, 1);
       }
-      if (length === fall + depth) {
+      if (length === fall + depth + 1) {
         teaEffects.fillRect(gridX - 2 - cycle, gridY + depth - 1, 1, 1);
         teaEffects.fillRect(gridX + 2 + cycle, gridY + depth, 1, 1);
       }
@@ -1151,7 +1152,7 @@ async function createScene() {
         pose(aligned.x, aligned.y, angle);
         const time = elapsed - alignTime;
         const fill = Math.max(0, (time - 150) / (flowTime - 150));
-        if (phase === "cup") drawCup(Math.min(3, Math.floor(fill * 4)), time);
+        if (phase === "cup") drawCup(fill);
         effects(time, fill);
       } else if (elapsed < alignTime + flowTime + returnTime) {
         teaEffects.clearRect(0, 0, 480, 270);
