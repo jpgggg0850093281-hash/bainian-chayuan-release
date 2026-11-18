@@ -483,7 +483,8 @@ button:focus-visible { outline: 2px solid #fff1a9; outline-offset: 3px; }
   pointer-events: none;
 }
 .tea-effects { z-index: 3; }
-.tea-scene[data-phase="water"]:has([data-object="kettle"].pouring-prop) .tea-effects { z-index: 5; }
+.tea-scene[data-phase="water"]:has([data-object="kettle"].pouring-prop) .tea-effects,
+.tea-scene[data-phase="cup"]:has([data-object="pot"].pouring-prop) .tea-effects { z-index: 5; }
 .cup-surface, .scoop-content { z-index: 1; }
 .harvest-front-rim {
   z-index: 2;

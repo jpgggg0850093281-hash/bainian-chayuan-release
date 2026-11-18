@@ -1053,7 +1053,7 @@ async function createScene() {
     const from = source.getBoundingClientRect();
     const into = target.getBoundingClientRect();
     // Anchors are measured inside the cropped sprite, at the lip and the opening.
-    const lip = { leaves: [.20, .88], water: [.137, .572], cup: [.08, .37] }[phase];
+    const lip = { leaves: [.20, .88], water: [.137, .572], cup: [.096, .36] }[phase];
     const opening = { leaves: [.50, .24], water: [.49, .21], cup: [cupOpening.x / 48, .29] }[phase];
     const receiver = { x: into.left - scene.left + into.width * opening[0], y: into.top - scene.top + into.height * opening[1] };
     const center = { x: from.left - scene.left + from.width / 2, y: from.top - scene.top + from.height / 2 };
@@ -1064,7 +1064,7 @@ async function createScene() {
     const lipX = dx * Math.cos(radians) - dy * Math.sin(radians);
     const lipY = dx * Math.sin(radians) + dy * Math.cos(radians);
     const clearance = phase === "water" ? scene.height * .115 : Math.max(14, scene.height * .16);
-    const streamOffset = phase === "water" ? scene.width * .008 : 0;
+    const streamOffset = scene.width * { leaves: 0, water: .008, cup: .016 }[phase];
     const aligned = { x: receiver.x + streamOffset - center.x - lipX, y: receiver.y - clearance - center.y - lipY };
     const flowTime = phase === "leaves" ? 1260 : 1250;
     const alignTime = 340;
@@ -1125,20 +1125,23 @@ async function createScene() {
         }
         return;
       }
-      const cycle = Math.floor(time / 80) % 3;
+      const glint = Math.floor(time / 28);
       const depth = Math.round((cupLevelY(fill) / 42 - opening[1]) * into.height / scene.height * 270);
       const length = Math.min(fall + depth + 1, Math.floor(time / 3));
       for (let y = 0; y < length; y += 1) {
-        const progress = Math.min(1, y / Math.max(1, fall - 1));
-        const x = gridX + Math.round(Math.sin(progress * Math.PI) * (cycle + 1) * .6);
+        const progress = y / (fall + depth);
+        // Horizontal travel is steady while gravity accelerates the stream downward.
+        const travel = (Math.sqrt(.0625 + 3 * progress) - .25) / 1.5;
+        const x = gridX + Math.round(sourceOffset * (1 - travel));
         teaEffects.fillStyle = "#d79340";
-        teaEffects.fillRect(x, top + y, 2, 1);
-        teaEffects.fillStyle = "#f3ca79";
-        if ((y + cycle) % 4 !== 0) teaEffects.fillRect(x, top + y, 1, 1);
+        teaEffects.fillRect(x - 1, top + y, 2, 1);
+        teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#f3ca79" : "#e8ac54";
+        teaEffects.fillRect(x, top + y, 1, 1);
       }
-      if (length === fall + depth + 1) {
-        teaEffects.fillRect(gridX - 2 - cycle, gridY + depth - 1, 1, 1);
-        teaEffects.fillRect(gridX + 2 + cycle, gridY + depth, 1, 1);
+      if (length === fall + depth + 1 && glint % 8 < 3) {
+        teaEffects.fillStyle = "#f3ca79";
+        teaEffects.fillRect(gridX - 2, gridY + depth, 1, 1);
+        teaEffects.fillRect(gridX + 2, gridY + depth - 1, 1, 1);
       }
     }
     function frame(now) {
