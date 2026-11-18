@@ -261,15 +261,6 @@ button {
 .tea-scene [data-object="kettle"] { --x: 69%; width: 15%; aspect-ratio: 510/586; background-size: 425.8824% 123.5495%; background-position: 66.426% 34.7826%; }
 .tea-scene [data-object="cup"] { --x: 55%; --y: 85%; width: 10%; aspect-ratio: 483/420; background-size: 449.6894% 172.381%; background-position: 99.1711% 66.4474%; }
 .tea-receiver { --x: 50%; --y: 47%; width: 23%; height: 17%; }
-.tea-scene:not([data-phase="serve"]) [data-object="cup"]::after {
-  content: "";
-  position: absolute;
-  inset: 17% 24% 55% 19%;
-  border-radius: 50%;
-  background: #60472f;
-  box-shadow: inset 0 -2px #896b4c;
-  z-index: 0;
-}
 .tea-scene:not([data-phase="leaves"]) [data-object="leaves"] { visibility: hidden; }
 .tea-prop.pouring-prop { z-index: 4; }
 .harvest-shoot { width: 13%; height: 19%; min-height: 36px; padding: 0; border: 0; }
@@ -467,6 +458,8 @@ button:focus-visible { outline: 2px solid #fff1a9; outline-offset: 3px; }
   pointer-events: none;
 }
 .tea-effects { z-index: 3; }
+.tea-scene[data-phase="water"]:has([data-object="kettle"].pouring-prop) .tea-effects,
+.tea-scene[data-phase="cup"]:has([data-object="pot"].pouring-prop) .tea-effects { z-index: 5; }
 .cup-surface, .scoop-content { z-index: 1; }
 .harvest-front-rim {
   z-index: 2;
