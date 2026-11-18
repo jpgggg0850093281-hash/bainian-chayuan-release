@@ -125,7 +125,6 @@ async function createScene() {
   let lastFrame;
   let animation;
   let activeTween;
-  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   let viewCenter = .45;
   let drag;
   const lanterns = [[.152, .456, .031], [.309, .474, .027], [.368, .525, .043], [.678, .364, .014], [.787, .275, .010]];
@@ -1667,19 +1666,18 @@ async function createScene() {
     const scale = portraitRatio ? Math.max(viewportWidth / (width * .64), viewportHeight / height)
       : Math.max(viewportWidth / width, viewportHeight / height);
     const zoom = scale * (stage === "garden" || portraitRatio ? 1.035 : 1.12);
-    const margin = Math.max(viewportWidth, viewportHeight) * .009;
     const center = stage === "garden" && !portraitRatio ? .5 : viewCenter;
     const cropX = Math.min(0, Math.max(viewportWidth - width * zoom, viewportWidth / 2 - width * zoom * center));
     const cropY = (viewportHeight - height * scale) / 2;
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.fillStyle = "#101f1c";
     context.fillRect(0, 0, viewportWidth, viewportHeight);
-    const originX = Math.min(0, Math.max(viewportWidth - width * zoom, cropX + pointer.x * margin));
-    const originY = Math.min(0, Math.max(viewportHeight - height * zoom,
-      cropY - (zoom - scale) * height / 2 + pointer.y * margin));
-    sceneProjection = { zoom, originX: Math.round(originX), originY: Math.round(originY) };
+    const originX = Math.round(cropX);
+    const originY = Math.round(Math.min(0, Math.max(viewportHeight - height * zoom,
+      cropY - (zoom - scale) * height / 2)));
+    sceneProjection = { zoom, originX, originY };
     context.imageSmoothingEnabled = false;
-    context.setTransform(zoom, 0, 0, zoom, Math.round(originX), Math.round(originY));
+    context.setTransform(zoom, 0, 0, zoom, originX, originY);
     drawLandscape();
     if (stage !== "garden") drawWater();
     drawLighting();
@@ -1689,7 +1687,7 @@ async function createScene() {
     const heroScaleX = heroLayer.width / viewportWidth;
     const heroScaleY = heroLayer.height / viewportHeight;
     heroContext.setTransform(zoom * heroScaleX, 0, 0, zoom * heroScaleY,
-      Math.round(originX) * heroScaleX, Math.round(originY) * heroScaleY);
+      originX * heroScaleX, originY * heroScaleY);
     drawHero();
     drawButterflies();
     drawLeaves();
@@ -1718,12 +1716,16 @@ async function createScene() {
   }
 
   function resize() {
-    const ratio = Math.min(480 / Math.max(1, canvas.clientWidth), 270 / Math.max(1, canvas.clientHeight));
-    canvas.width = Math.max(1, Math.round(canvas.clientWidth * ratio));
-    canvas.height = Math.max(1, Math.round(canvas.clientHeight * ratio));
+    const sceneWidth = Math.max(1, canvas.clientWidth);
+    const sceneHeight = Math.max(1, canvas.clientHeight);
+    const ratio = Math.min(480 / sceneWidth, 270 / sceneHeight);
     const heroRatio = Math.min(devicePixelRatio || 1, 1.75);
-    heroLayer.width = Math.max(1, Math.round(canvas.clientWidth * heroRatio));
-    heroLayer.height = Math.max(1, Math.round(canvas.clientHeight * heroRatio));
+    for (const [layer, scale] of [[canvas, ratio], [heroLayer, heroRatio]]) {
+      const nextWidth = Math.max(1, Math.round(sceneWidth * scale));
+      const nextHeight = Math.max(1, Math.round(sceneHeight * scale));
+      if (layer.width !== nextWidth) layer.width = nextWidth;
+      if (layer.height !== nextHeight) layer.height = nextHeight;
+    }
     render();
   }
 
@@ -1735,8 +1737,6 @@ async function createScene() {
       elapsed += step;
       const amount = 1 - Math.exp(-step * 4.5);
       updateLight(amount);
-      pointer.x += (pointer.targetX - pointer.x) * amount;
-      pointer.y += (pointer.targetY - pointer.y) * amount;
     }
     const tween = activeTween;
     if (tween) {
@@ -1800,33 +1800,27 @@ async function createScene() {
   motion.addEventListener("click", () => setPaused(!paused));
   accessibility.addEventListener("change", event => setPaused(event.matches));
   canvas.addEventListener("pointermove", event => {
-    if (drag?.id === event.pointerId) {
-      if (Math.abs(event.clientX - drag.x) > 7) drag.moved = true;
-      const movement = (event.clientX - drag.x) / Math.max(canvas.clientHeight * width / height, canvas.clientWidth);
-      viewCenter = Math.max(.14, Math.min(.86, drag.center - movement));
-      if (paused) render();
-      return;
-    }
-    if (event.pointerType !== "mouse") return;
-    pointer.targetX = .5 - event.offsetX / canvas.clientWidth;
-    pointer.targetY = .5 - event.offsetY / canvas.clientHeight;
+    if (drag?.id !== event.pointerId || busy) return;
+    const delta = event.clientX - drag.x;
+    const distance = Math.max(0, Math.abs(delta) - 7);
+    if (!drag.moved && !distance) return;
+    drag.moved = true;
+    const movement = Math.sign(delta) * distance / Math.max(canvas.clientHeight * width / height, canvas.clientWidth);
+    viewCenter = Math.max(.14, Math.min(.86, drag.center - movement));
+    if (paused) render();
   });
   canvas.addEventListener("pointerdown", event => {
-    if (event.pointerType === "mouse" || canvas.clientWidth >= canvas.clientHeight || busy) return;
+    if (drag || event.pointerType === "mouse" || canvas.clientWidth >= canvas.clientHeight || busy) return;
     drag = { id: event.pointerId, x: event.clientX, center: viewCenter };
     canvas.setPointerCapture(event.pointerId);
   });
-  for (const eventName of ["pointerup", "pointercancel"]) {
+  for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
     canvas.addEventListener(eventName, event => {
       if (drag?.id !== event.pointerId) return;
       if (drag.moved) suppressRoadClickUntil = performance.now() + 250;
       drag = undefined;
     });
   }
-  canvas.addEventListener("pointerleave", () => {
-    pointer.targetX = 0;
-    pointer.targetY = 0;
-  });
   canvas.addEventListener("click", event => {
     if (stage === "garden" || busy || performance.now() < suppressRoadClickUntil) return;
     const rect = canvas.getBoundingClientRect();
