@@ -30,13 +30,18 @@ function readImage(filename, width, height) {
 function readBadge(badge) {
   const directory = path.join(root, badge.id);
   const frameDirectory = path.join(directory, "frames");
-  const files = badge.frameFiles ?? angles.map(angle => `${String(angle).padStart(3, "0")}.png`);
-  if (files.length !== badge.frameCount || badge.angles.length !== files.length ||
+  const files = angles.map(angle => `${String(angle).padStart(3, "0")}.png`);
+  if (files.length !== badge.frameCount || badge.angles.join(",") !== angles.join(",") ||
       [...files].sort().join(",") !== fs.readdirSync(frameDirectory).filter(file => file.endsWith(".png")).sort().join(",")) {
     throw new Error(`${badge.id}: frames do not match the registered filenames and angles`);
   }
   const { frameWidth: width, frameHeight: height } = badge;
   const images = files.map(file => readImage(path.join(frameDirectory, file), width, height));
+  for (const image of images) {
+    if (!image.data.subarray(3).some((alpha, i) => i % 4 === 0 && alpha === 0)) {
+      throw new Error(`${badge.id}: frames must have a transparent background`);
+    }
+  }
   const frontIndex = badge.angles.indexOf(0);
   if (frontIndex < 0) throw new Error(`${badge.id}: missing front angle`);
   const sprite = new PNG({ width: width * images.length, height });

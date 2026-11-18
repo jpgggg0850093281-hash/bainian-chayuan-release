@@ -1,0 +1,68 @@
+@font-face {
+  font-family: "Badge Cubic 11";
+  src: url("../Cubic_11.woff2") format("woff2");
+  font-display: swap;
+}
+
+.badge-award[open] {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  box-sizing: border-box;
+  margin: 0;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  overflow: auto;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 0;
+  color: #ffecd0;
+  font: 16px/1.4 "Badge Cubic 11", monospace;
+}
+
+.badge-award::backdrop { background: #08130ee0; }
+.badge-award__card {
+  width: min(25rem, 100%);
+  box-sizing: border-box;
+  padding: .9rem;
+  border: 2px solid #c89d52;
+  border-radius: .55rem;
+  background: #12271e;
+  text-align: center;
+  animation: badge-award-open .25s ease-out both;
+}
+.badge-award__card h2 { font-size: 1.4rem; margin: 0; color: #ffe0a4; }
+.badge-award__space { height: min(58vw, 33svh, 230px); }
+.badge-award__details { min-height: 7.25rem; }
+.badge-award__details p { margin: .25rem 0; opacity: 0; }
+.badge-award__name { color: #ffe0a4; font-size: 1.3rem; }
+.badge-award--revealed .badge-award__details p { animation: badge-award-fade .2s ease-out both; }
+.badge-award--revealed .badge-award__name { animation-delay: .1s; }
+.badge-award--revealed .badge-award__description { animation-delay: .2s; }
+.badge-award__accept {
+  min-width: 6rem;
+  min-height: 44px;
+  font: inherit;
+  color: #ffe0a4;
+  background: #234334;
+  padding: .45rem 1rem;
+  border: 1px solid #dfb368;
+  border-radius: .25rem;
+  cursor: pointer;
+}
+.badge-award__accept[hidden] { display: inline-block; visibility: hidden; }
+.badge-award__accept:focus-visible { outline: 2px solid #ffe0a4; outline-offset: 3px; }
+.badge-award__effects { position: fixed; inset: 0; width: 100%; height: 100%; image-rendering: pixelated; pointer-events: none; }
+.badge-award--closing .badge-award__card { animation: badge-award-close .23s ease-in both; }
+.badge-award--reduced .badge-award__card { animation-name: badge-award-fade; }
+.badge-award--reduced.badge-award--closing .badge-award__card { animation-name: badge-award-close; }
+@keyframes badge-award-open {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes badge-award-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes badge-award-close { from { opacity: 1; } to { opacity: 0; } }
