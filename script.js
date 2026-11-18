@@ -958,7 +958,8 @@ async function createScene() {
     for (const object of teaTable.querySelectorAll("[data-object]")) {
       object.dataset.pickable = String(object.dataset.object === source);
       object.dataset.destination = String(object.dataset.object === target);
-      object.dataset.guide = object.dataset.object === source ? "active" : "pending";
+      if (object.dataset.object === source) object.dataset.guide = "active";
+      else delete object.dataset.guide;
     }
   }
 
@@ -1001,11 +1002,12 @@ async function createScene() {
         if (frame !== next) {
           frame = next;
           const layer = layers[frame % 2];
+          layer.dataset.sipFrame = String(frame);
           layer.style.setProperty("--sip-column", String(frame % 3));
           layer.style.setProperty("--sip-row", String(Math.floor(frame / 3)));
           layer.style.zIndex = String(frame + 1);
           layer.animate([{ opacity: frame === 0 ? 1 : 0 }, { opacity: 1 }],
-            { duration: accessibility.matches ? 1 : 145, fill: "forwards" });
+            { duration: accessibility.matches || frame === 3 ? 1 : 145, fill: "forwards" });
         }
         requestAnimationFrame(sip);
       }
@@ -1037,6 +1039,7 @@ async function createScene() {
     for (const layer of teaTable.querySelectorAll(".tea-sip-sequence > div")) {
       for (const animation of layer.getAnimations()) animation.cancel();
       layer.style.removeProperty("z-index");
+      delete layer.dataset.sipFrame;
     }
     teaEffects.clearRect(0, 0, 480, 270);
     pouring = false;
@@ -1056,12 +1059,12 @@ async function createScene() {
     const center = { x: from.left - scene.left + from.width / 2, y: from.top - scene.top + from.height / 2 };
     const dx = (lip[0] - .5) * from.width;
     const dy = (lip[1] - .5) * from.height;
-    const angle = phase === "leaves" ? -35 : -30;
+    const angle = { leaves: -35, water: -24, cup: -30 }[phase];
     const radians = angle * Math.PI / 180;
     const lipX = dx * Math.cos(radians) - dy * Math.sin(radians);
     const lipY = dx * Math.sin(radians) + dy * Math.cos(radians);
-    const clearance = phase === "water" ? scene.height * .095 : Math.max(14, scene.height * .16);
-    const streamOffset = phase === "water" ? scene.width * .045 : 0;
+    const clearance = phase === "water" ? scene.height * .115 : Math.max(14, scene.height * .16);
+    const streamOffset = phase === "water" ? scene.width * .008 : 0;
     const aligned = { x: receiver.x + streamOffset - center.x - lipX, y: receiver.y - clearance - center.y - lipY };
     const flowTime = phase === "leaves" ? 1260 : 1250;
     const alignTime = 340;
@@ -1104,15 +1107,33 @@ async function createScene() {
         }
         return;
       }
+      if (phase === "water") {
+        const length = Math.min(fall, Math.floor(time / 3));
+        const glint = Math.floor(time / 28);
+        for (let y = 0; y < length; y += 1) {
+          const progress = y / (fall - 1);
+          const x = gridX + Math.round(sourceOffset * (1 - progress * progress));
+          teaEffects.fillStyle = "#9cc8cd";
+          teaEffects.fillRect(x, top + y, 3, 1);
+          teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#def5e9" : "#b9dfe3";
+          teaEffects.fillRect(x + 1, top + y, 1, 1);
+        }
+        if (length === fall && glint % 8 < 3) {
+          teaEffects.fillStyle = "#def5e9";
+          teaEffects.fillRect(gridX - 2, gridY - 2, 1, 1);
+          teaEffects.fillRect(gridX + 4, gridY - 3, 1, 1);
+        }
+        return;
+      }
       const cycle = Math.floor(time / 80) % 3;
-      const depth = phase === "cup" ? Math.round(6 * (1 - fill)) : 0;
+      const depth = Math.round(6 * (1 - fill));
       const length = Math.min(fall + depth, Math.floor(time / 3));
       for (let y = 0; y < length; y += 1) {
         const progress = Math.min(1, y / Math.max(1, fall - 1));
-        const x = gridX + Math.round(sourceOffset * (1 - progress * progress) + Math.sin(progress * Math.PI) * (cycle + 1) * .6);
-        teaEffects.fillStyle = phase === "cup" ? "#d79340" : "#9cc8cd";
+        const x = gridX + Math.round(Math.sin(progress * Math.PI) * (cycle + 1) * .6);
+        teaEffects.fillStyle = "#d79340";
         teaEffects.fillRect(x, top + y, 2, 1);
-        teaEffects.fillStyle = phase === "cup" ? "#f3ca79" : "#def5e9";
+        teaEffects.fillStyle = "#f3ca79";
         if ((y + cycle) % 4 !== 0) teaEffects.fillRect(x, top + y, 1, 1);
       }
       if (length === fall + depth) {

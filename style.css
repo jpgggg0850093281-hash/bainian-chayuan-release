@@ -94,12 +94,10 @@ main.loading .status { inset: 45% auto auto 50%; translate: -50% 0; padding: 12p
   border-radius: .45rem;
   box-shadow: 0 .3rem 1.2rem #0a1813a0;
 }
-.chapter-panel h2 { margin: 0; padding-right: 2.5rem; color: #ffe3a7; font-size: 1rem; }
+.chapter-panel header { display: flex; align-items: center; justify-content: space-between; gap: .5rem; }
+.chapter-panel h2 { margin: 0; color: #ffe3a7; font-size: 1rem; }
 .close-chapter {
-  position: absolute;
-  top: .1rem;
-  right: .15rem;
-  width: 44px;
+  flex: 0 0 44px;
   min-height: 44px;
   padding: 0;
   font-size: 24px;
@@ -224,6 +222,14 @@ button {
 .immersive-dialog header { display: flex; justify-content: space-between; align-items: center; }
 .immersive-dialog h2 { margin: .25rem .45rem; font-size: 24px; }
 .immersive-dialog p { margin: 0 .45rem .45rem; min-height: 2.6em; }
+#tea-instruction {
+  width: auto;
+  max-width: none;
+  line-height: 1.4;
+  min-height: calc(2lh + .7rem + 4px);
+  display: grid;
+  place-items: center;
+}
 .gesture-scene { position: relative; aspect-ratio: 1672 / 941; background-size: 100% 100%; background-repeat: no-repeat; touch-action: none; user-select: none; }
 .tea-scene { background-image: url("assets/tea-table.png"); }
 .harvest-scene {
@@ -392,12 +398,13 @@ button:focus-visible { outline: 2px solid #fff1a9; outline-offset: 3px; }
   z-index: 5;
   display: grid;
   place-items: center;
-  background: #1a140e;
+  background: linear-gradient(#24180fbc, #24180fbc), url("assets/tea-table.png") center / cover;
   visibility: hidden;
   pointer-events: none;
 }
 .tea-scene[data-sipping="true"] .tea-sip-sequence { visibility: visible; }
 .tea-sip-sequence > div {
+  position: relative;
   grid-area: 1 / 1;
   opacity: 0;
   width: 56.25%;
@@ -408,6 +415,17 @@ button:focus-visible { outline: 2px solid #fff1a9; outline-offset: 3px; }
     calc(var(--sip-column, 0) * 50%)
     calc(var(--sip-row, 0) * 100%);
   image-rendering: pixelated;
+}
+/* The ceramic front rim covers the tea as the cup meets Grandma's lips. */
+.tea-sip-sequence [data-sip-frame="3"]::after {
+  content: "";
+  position: absolute;
+  left: 51.5%;
+  top: 31%;
+  width: 11.8%;
+  height: 3%;
+  background: linear-gradient(174deg, #b89672, #f0d6ae 72%, #fff0d2);
+  clip-path: polygon(0 97%, 8% 57%, 22% 27%, 43% 8%, 65% 0, 87% 12%, 100% 45%, 88% 61%, 66% 66%, 43% 80%, 20% 95%);
 }
 .tea-scene .gesture-target { z-index: 1; }
 .tea-scene .dragging { z-index: 3; }
@@ -506,6 +524,7 @@ button:focus-visible { outline: 2px solid #fff1a9; outline-offset: 3px; }
   opacity: .52;
 }
 .harvest-shoot .interaction-marker { inset: 20%; }
+.tea-scene .interaction-marker { opacity: 0; }
 .interaction-marker > span {
   display: block;
   position: absolute;
