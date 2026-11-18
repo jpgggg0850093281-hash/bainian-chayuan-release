@@ -125,7 +125,6 @@ async function createScene() {
   let lastFrame;
   let animation;
   let activeTween;
-  const pointer = { x: 0, y: 0, targetX: 0, targetY: 0 };
   let viewCenter = .45;
   let drag;
   const lanterns = [[.152, .456, .031], [.309, .474, .027], [.368, .525, .043], [.678, .364, .014], [.787, .275, .010]];
@@ -806,6 +805,7 @@ async function createScene() {
   const teaEffects = teaTable.querySelector(".tea-effects").getContext("2d");
   const cupSurface = teaTable.querySelector(".cup-surface").getContext("2d");
   const scoopCanvas = teaTable.querySelector(".scoop-content").getContext("2d");
+ fix/tea-pour-and-sip
   // tea-props.png (2172×724): the cup's CSS background size and position give a
   // 483×420 crop from (1675, 202). Scanning across the rim at y=317 and x=1890
   // puts the inner edges at x=1753–2031 and y=237–399. Subtract the crop origin
@@ -846,6 +846,30 @@ async function createScene() {
         cupSurface.fillRect(x, y, 1, 1);
       }
     }
+
+  const cupOpening = { x: 21, y: 10, rx: 13, ry: 6 };
+  const cupLevelY = level => 14 - level * 4;
+  function drawCup(level) {
+    cupSurface.clearRect(0, 0, 48, 42);
+    if (level <= 0) return;
+    const { x, y, rx, ry } = cupOpening;
+    const surfaceY = cupLevelY(level);
+    const radiusX = 2 + level * 10;
+    const radiusY = .4 + level * 4;
+    const color = cupSurface.createLinearGradient(0, surfaceY - radiusY, 0, surfaceY + radiusY);
+    color.addColorStop(0, "#98541e");
+    color.addColorStop(.6, "#be781e");
+    color.addColorStop(1, "#cf902e");
+    cupSurface.save();
+    cupSurface.beginPath();
+    cupSurface.ellipse(x, y, rx, ry, 0, 0, 2 * Math.PI);
+    cupSurface.clip();
+    cupSurface.beginPath();
+    cupSurface.ellipse(x, surfaceY, radiusX, radiusY, 0, 0, 2 * Math.PI);
+    cupSurface.fillStyle = color;
+    cupSurface.fill();
+    cupSurface.restore();
+ main
   }
 
   const dryTeaPalette = ["#211610", "#36241a", "#563827", "#795137"];
@@ -977,7 +1001,8 @@ async function createScene() {
     for (const object of teaTable.querySelectorAll("[data-object]")) {
       object.dataset.pickable = String(object.dataset.object === source);
       object.dataset.destination = String(object.dataset.object === target);
-      object.dataset.guide = object.dataset.object === source ? "active" : "pending";
+      if (object.dataset.object === source) object.dataset.guide = "active";
+      else delete object.dataset.guide;
     }
   }
 
@@ -1020,11 +1045,12 @@ async function createScene() {
         if (frame !== next) {
           frame = next;
           const layer = layers[frame % 2];
+          layer.dataset.sipFrame = String(frame);
           layer.style.setProperty("--sip-column", String(frame % 3));
           layer.style.setProperty("--sip-row", String(Math.floor(frame / 3)));
           layer.style.zIndex = String(frame + 1);
           layer.animate([{ opacity: frame === 0 ? 1 : 0 }, { opacity: 1 }],
-            { duration: accessibility.matches ? 1 : 145, fill: "forwards" });
+            { duration: accessibility.matches || frame === 3 ? 1 : 145, fill: "forwards" });
         }
         requestAnimationFrame(sip);
       }
@@ -1056,6 +1082,7 @@ async function createScene() {
     for (const layer of teaTable.querySelectorAll(".tea-sip-sequence > div")) {
       for (const animation of layer.getAnimations()) animation.cancel();
       layer.style.removeProperty("z-index");
+      delete layer.dataset.sipFrame;
     }
     teaEffects.clearRect(0, 0, 480, 270);
     pouring = false;
@@ -1070,17 +1097,25 @@ async function createScene() {
     const into = target.getBoundingClientRect();
     // Anchors are measured inside the cropped sprite, at the lip and the opening.
     const lip = { leaves: [.20, .88], water: [.137, .572], cup: [.096, .36] }[phase];
+fix/tea-pour-and-sip
     const opening = { leaves: [.50, .24], water: [.49, .21], cup: [cupOpening.x / 48, cupOpening.y / 42] }[phase];
+
+    const opening = { leaves: [.50, .24], water: [.49, .21], cup: [cupOpening.x / 48, .29] }[phase];
+ main
     const receiver = { x: into.left - scene.left + into.width * opening[0], y: into.top - scene.top + into.height * opening[1] };
     const center = { x: from.left - scene.left + from.width / 2, y: from.top - scene.top + from.height / 2 };
     const dx = (lip[0] - .5) * from.width;
     const dy = (lip[1] - .5) * from.height;
-    const angle = phase === "leaves" ? -35 : -30;
+    const angle = { leaves: -35, water: -24, cup: -30 }[phase];
     const radians = angle * Math.PI / 180;
     const lipX = dx * Math.cos(radians) - dy * Math.sin(radians);
     const lipY = dx * Math.sin(radians) + dy * Math.cos(radians);
     const clearance = phase === "water" ? scene.height * .115 : Math.max(14, scene.height * .16);
+ fix/tea-pour-and-sip
     const streamOffset = phase === "leaves" ? 0 : scene.width * .027;
+
+    const streamOffset = scene.width * { leaves: 0, water: .008, cup: .016 }[phase];
+ main
     const aligned = { x: receiver.x + streamOffset - center.x - lipX, y: receiver.y - clearance - center.y - lipY };
     const flowTime = phase === "leaves" ? 1260 : 1250;
     const alignTime = 340;
@@ -1123,6 +1158,7 @@ async function createScene() {
         }
         return;
       }
+ fix/tea-pour-and-sip
       const tea = phase === "cup";
       const depth = tea ? Math.round((cupLevelY(fill) - cupOpening.y) / 42 * into.height / scene.height * 270) : 0;
       const drop = fall + depth;
@@ -1142,6 +1178,43 @@ async function createScene() {
         teaEffects.fillStyle = highlight;
         teaEffects.fillRect(gridX - 2, gridY + depth - 1, 1, 1);
         teaEffects.fillRect(gridX + 2, gridY + depth, 1, 1);
+
+      if (phase === "water") {
+        const length = Math.min(fall + 1, Math.floor(time / 3));
+        const glint = Math.floor(time / 28);
+        for (let y = 0; y < length; y += 1) {
+          const progress = y / fall;
+          const x = gridX + Math.round(sourceOffset * (1 - progress * progress));
+          teaEffects.fillStyle = "#9cc8cd";
+          teaEffects.fillRect(x - 1, top + y, 3, 1);
+          teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#def5e9" : "#b9dfe3";
+          teaEffects.fillRect(x, top + y, 1, 1);
+        }
+        if (length === fall + 1 && glint % 8 < 3) {
+          teaEffects.fillStyle = "#def5e9";
+          teaEffects.fillRect(gridX - 2, gridY - 2, 1, 1);
+          teaEffects.fillRect(gridX + 4, gridY - 3, 1, 1);
+        }
+        return;
+      }
+      const glint = Math.floor(time / 28);
+      const depth = Math.round((cupLevelY(fill) / 42 - opening[1]) * into.height / scene.height * 270);
+      const length = Math.min(fall + depth + 1, Math.floor(time / 3));
+      for (let y = 0; y < length; y += 1) {
+        const progress = y / (fall + depth);
+        // Horizontal travel is steady while gravity accelerates the stream downward.
+        const travel = (Math.sqrt(.0625 + 3 * progress) - .25) / 1.5;
+        const x = gridX + Math.round(sourceOffset * (1 - travel));
+        teaEffects.fillStyle = "#d79340";
+        teaEffects.fillRect(x - 1, top + y, 2, 1);
+        teaEffects.fillStyle = (y - glint) % 9 === 0 ? "#f3ca79" : "#e8ac54";
+        teaEffects.fillRect(x, top + y, 1, 1);
+      }
+      if (length === fall + depth + 1 && glint % 8 < 3) {
+        teaEffects.fillStyle = "#f3ca79";
+        teaEffects.fillRect(gridX - 2, gridY + depth, 1, 1);
+        teaEffects.fillRect(gridX + 2, gridY + depth - 1, 1, 1);
+ main
       }
     }
     function frame(now) {
@@ -1155,7 +1228,11 @@ async function createScene() {
         pose(aligned.x, aligned.y, angle);
         const time = elapsed - alignTime;
         const fill = Math.max(0, (time - 150) / (flowTime - 150));
+ fix/tea-pour-and-sip
         if (phase === "cup") drawCup(fill, time);
+
+        if (phase === "cup") drawCup(fill);
+ main
         effects(time, fill);
       } else if (elapsed < alignTime + flowTime + returnTime) {
         teaEffects.clearRect(0, 0, 480, 270);
@@ -1671,19 +1748,18 @@ async function createScene() {
     const scale = portraitRatio ? Math.max(viewportWidth / (width * .64), viewportHeight / height)
       : Math.max(viewportWidth / width, viewportHeight / height);
     const zoom = scale * (stage === "garden" || portraitRatio ? 1.035 : 1.12);
-    const margin = Math.max(viewportWidth, viewportHeight) * .009;
     const center = stage === "garden" && !portraitRatio ? .5 : viewCenter;
     const cropX = Math.min(0, Math.max(viewportWidth - width * zoom, viewportWidth / 2 - width * zoom * center));
     const cropY = (viewportHeight - height * scale) / 2;
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.fillStyle = "#101f1c";
     context.fillRect(0, 0, viewportWidth, viewportHeight);
-    const originX = Math.min(0, Math.max(viewportWidth - width * zoom, cropX + pointer.x * margin));
-    const originY = Math.min(0, Math.max(viewportHeight - height * zoom,
-      cropY - (zoom - scale) * height / 2 + pointer.y * margin));
-    sceneProjection = { zoom, originX: Math.round(originX), originY: Math.round(originY) };
+    const originX = Math.round(cropX);
+    const originY = Math.round(Math.min(0, Math.max(viewportHeight - height * zoom,
+      cropY - (zoom - scale) * height / 2)));
+    sceneProjection = { zoom, originX, originY };
     context.imageSmoothingEnabled = false;
-    context.setTransform(zoom, 0, 0, zoom, Math.round(originX), Math.round(originY));
+    context.setTransform(zoom, 0, 0, zoom, originX, originY);
     drawLandscape();
     if (stage !== "garden") drawWater();
     drawLighting();
@@ -1693,7 +1769,7 @@ async function createScene() {
     const heroScaleX = heroLayer.width / viewportWidth;
     const heroScaleY = heroLayer.height / viewportHeight;
     heroContext.setTransform(zoom * heroScaleX, 0, 0, zoom * heroScaleY,
-      Math.round(originX) * heroScaleX, Math.round(originY) * heroScaleY);
+      originX * heroScaleX, originY * heroScaleY);
     drawHero();
     drawButterflies();
     drawLeaves();
@@ -1722,12 +1798,16 @@ async function createScene() {
   }
 
   function resize() {
-    const ratio = Math.min(480 / Math.max(1, canvas.clientWidth), 270 / Math.max(1, canvas.clientHeight));
-    canvas.width = Math.max(1, Math.round(canvas.clientWidth * ratio));
-    canvas.height = Math.max(1, Math.round(canvas.clientHeight * ratio));
+    const sceneWidth = Math.max(1, canvas.clientWidth);
+    const sceneHeight = Math.max(1, canvas.clientHeight);
+    const ratio = Math.min(480 / sceneWidth, 270 / sceneHeight);
     const heroRatio = Math.min(devicePixelRatio || 1, 1.75);
-    heroLayer.width = Math.max(1, Math.round(canvas.clientWidth * heroRatio));
-    heroLayer.height = Math.max(1, Math.round(canvas.clientHeight * heroRatio));
+    for (const [layer, scale] of [[canvas, ratio], [heroLayer, heroRatio]]) {
+      const nextWidth = Math.max(1, Math.round(sceneWidth * scale));
+      const nextHeight = Math.max(1, Math.round(sceneHeight * scale));
+      if (layer.width !== nextWidth) layer.width = nextWidth;
+      if (layer.height !== nextHeight) layer.height = nextHeight;
+    }
     render();
   }
 
@@ -1739,8 +1819,6 @@ async function createScene() {
       elapsed += step;
       const amount = 1 - Math.exp(-step * 4.5);
       updateLight(amount);
-      pointer.x += (pointer.targetX - pointer.x) * amount;
-      pointer.y += (pointer.targetY - pointer.y) * amount;
     }
     const tween = activeTween;
     if (tween) {
@@ -1804,33 +1882,27 @@ async function createScene() {
   motion.addEventListener("click", () => setPaused(!paused));
   accessibility.addEventListener("change", event => setPaused(event.matches));
   canvas.addEventListener("pointermove", event => {
-    if (drag?.id === event.pointerId) {
-      if (Math.abs(event.clientX - drag.x) > 7) drag.moved = true;
-      const movement = (event.clientX - drag.x) / Math.max(canvas.clientHeight * width / height, canvas.clientWidth);
-      viewCenter = Math.max(.14, Math.min(.86, drag.center - movement));
-      if (paused) render();
-      return;
-    }
-    if (event.pointerType !== "mouse") return;
-    pointer.targetX = .5 - event.offsetX / canvas.clientWidth;
-    pointer.targetY = .5 - event.offsetY / canvas.clientHeight;
+    if (drag?.id !== event.pointerId || busy) return;
+    const delta = event.clientX - drag.x;
+    const distance = Math.max(0, Math.abs(delta) - 7);
+    if (!drag.moved && !distance) return;
+    drag.moved = true;
+    const movement = Math.sign(delta) * distance / Math.max(canvas.clientHeight * width / height, canvas.clientWidth);
+    viewCenter = Math.max(.14, Math.min(.86, drag.center - movement));
+    if (paused) render();
   });
   canvas.addEventListener("pointerdown", event => {
-    if (event.pointerType === "mouse" || canvas.clientWidth >= canvas.clientHeight || busy) return;
+    if (drag || event.pointerType === "mouse" || canvas.clientWidth >= canvas.clientHeight || busy) return;
     drag = { id: event.pointerId, x: event.clientX, center: viewCenter };
     canvas.setPointerCapture(event.pointerId);
   });
-  for (const eventName of ["pointerup", "pointercancel"]) {
+  for (const eventName of ["pointerup", "pointercancel", "lostpointercapture"]) {
     canvas.addEventListener(eventName, event => {
       if (drag?.id !== event.pointerId) return;
       if (drag.moved) suppressRoadClickUntil = performance.now() + 250;
       drag = undefined;
     });
   }
-  canvas.addEventListener("pointerleave", () => {
-    pointer.targetX = 0;
-    pointer.targetY = 0;
-  });
   canvas.addEventListener("click", event => {
     if (stage === "garden" || busy || performance.now() < suppressRoadClickUntil) return;
     const rect = canvas.getBoundingClientRect();

@@ -5,9 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="dark">
   <title>百年茶緣｜魚池茶鄉</title>
+  
+fix/tea-pour-and-sip
   <link rel="stylesheet" href="style.css?v=tea-cup-rim-1">
   <script src="src/assets/player.js?v=style-pass-1" defer></script>
   <script src="script.js?v=tea-cup-rim-1" defer></script>
+
+  <link rel="stylesheet" href="style.css?v=tea-stream-1">
+  <script src="src/assets/player.js?v=style-pass-1" defer></script>
+  <script src="script.js?v=tea-stream-1" defer></script>
+ main
 </head>
 <body>
   <main class="loading">
@@ -21,8 +28,10 @@
     <p id="garden-guide" class="interaction-instruction garden-guide" role="status" hidden></p>
     <div id="scene-targets" class="scene-targets" aria-label="可互動地點"></div>
     <section id="chapter-panel" class="chapter-panel" aria-labelledby="chapter-speaker">
-      <button type="button" id="close-chapter" class="close-chapter" aria-label="關閉對話">×</button>
-      <h2 id="chapter-speaker">阿春阿嬤</h2>
+      <header>
+        <h2 id="chapter-speaker">阿春阿嬤</h2>
+        <button type="button" id="close-chapter" class="close-chapter" aria-label="關閉對話">×</button>
+      </header>
       <p id="chapter-line" role="status">雨停了，青禾。沼田寄了封信來，說想念咱們的茶。妳願意替我泡一壺今年的新茶嗎？</p>
       <div id="chapter-actions" class="chapter-actions"></div>
     </section>
