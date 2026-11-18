@@ -135,7 +135,9 @@ main { --toolbar-bottom: max(1rem, calc(env(safe-area-inset-bottom) + .5rem)); }
   justify-content: space-between;
   align-items: center;
   gap: .65rem;
+  pointer-events: none;
 }
+.scene-controls button { pointer-events: auto; }
 .weather {
   background: #14251feb;
   border: 1px solid #f0d9a469;
@@ -163,8 +165,35 @@ button {
 .motion { background: #15251ee6; border-color: #f0d9a469; }
 .motion:hover { background: #355043; }
 .scene-utilities { display: flex; gap: .35rem; }
+@media (max-width: 680px), (max-height: 500px) and (pointer: coarse) {
+  main { --toolbar-bottom: calc(env(safe-area-inset-bottom) + .5rem); }
+  main .scene-controls {
+    inset-inline: 0;
+    width: max-content;
+    margin-inline: auto;
+    flex-direction: column;
+    gap: .25rem;
+    border: 0;
+    background: transparent;
+  }
+  .scene-controls button {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 .3rem;
+    font-size: .875rem;
+    letter-spacing: 0;
+  }
+  .weather { padding: 0; }
+  .scene-utilities { gap: .25rem; }
+  body > #pixel-art-warning {
+    top: 0;
+    bottom: auto;
+    max-width: 50vw;
+    font-size: .6875rem;
+    overflow-wrap: anywhere;
+  }
+}
 @media (max-width: 560px) {
-  .scene-utilities { flex-wrap: wrap; justify-content: flex-end; }
   .chapter-panel { max-height: 52svh; overflow: auto; }
 }
 #current-quest { border-color: #ecd6a6; color: #ffe3a7; }
@@ -353,14 +382,8 @@ button.valve-seat {
 .valve-channels p { flex-basis: 100%; color: #adf1ff; }
 @media (prefers-reduced-motion: reduce) { .valve-drip { animation: none; } .valve-wheel { transition: none; } }
 button:focus-visible { outline: 2px solid #fff1a9; outline-offset: 3px; }
-@media (max-width: 530px) {
-  .scene-controls { flex-wrap: wrap; }
-  .scene-utilities { margin-left: auto; }
-  .scene-controls button { padding-inline: .45rem; }
-}
 @media (max-width: 400px) {
   button { padding-inline: .55rem; }
-  .scene-controls { gap: .4rem; }
 }
 
 .tea-sip-sequence {
