@@ -1,0 +1,154 @@
+[
+  {
+    "id": "ch01-tea-novice",
+    "chapter": 1,
+    "chapterTitle": "雨後的第一壺茶",
+    "name": "茶寮新手",
+    "description": "完成「雨後的第一壺茶」後獲得此紀念物。",
+    "sprite": "assets/badges/ch01-tea-novice/sprite.png",
+    "front": "assets/badges/ch01-tea-novice/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 4,
+    "angles": [
+      null,
+      90,
+      180,
+      0
+    ],
+    "status": "ready",
+    "frameFiles": [
+      "oblique.png",
+      "090.png",
+      "180.png",
+      "000.png"
+    ],
+    "legacy": true
+  },
+  {
+    "id": "ch02-water-keeper",
+    "chapter": 2,
+    "chapterTitle": "乾日的水路",
+    "name": "守水人",
+    "description": "完成「乾日的水路」後獲得此紀念物。",
+    "sprite": "assets/badges/ch02-water-keeper/sprite.png",
+    "front": "assets/badges/ch02-water-keeper/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 6,
+    "angles": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "status": "todo"
+  },
+  {
+    "id": "ch03-craft-heir",
+    "chapter": 3,
+    "chapterTitle": "留得住的手藝",
+    "name": "傳藝人",
+    "description": "完成「留得住的手藝」後獲得此紀念物。",
+    "sprite": "assets/badges/ch03-craft-heir/sprite.png",
+    "front": "assets/badges/ch03-craft-heir/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 6,
+    "angles": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "status": "ready"
+  },
+  {
+    "id": "ch04-creek-watcher",
+    "chapter": 4,
+    "chapterTitle": "水車下的訪客",
+    "name": "溪畔觀察員",
+    "description": "完成「水車下的訪客」後獲得此紀念物。",
+    "sprite": "assets/badges/ch04-creek-watcher/sprite.png",
+    "front": "assets/badges/ch04-creek-watcher/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 6,
+    "angles": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "status": "todo"
+  },
+  {
+    "id": "ch05-shore-guard",
+    "chapter": 5,
+    "chapterTitle": "湖岸的約定",
+    "name": "護岸人",
+    "description": "完成「湖岸的約定」後獲得此紀念物。",
+    "sprite": "assets/badges/ch05-shore-guard/sprite.png",
+    "front": "assets/badges/ch05-shore-guard/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 6,
+    "angles": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "status": "todo"
+  },
+  {
+    "id": "ch06-lake-courier",
+    "chapter": 6,
+    "chapterTitle": "茶箱裡的兩封信",
+    "name": "山湖信使",
+    "description": "完成「茶箱裡的兩封信」後獲得此紀念物。",
+    "sprite": "assets/badges/ch06-lake-courier/sprite.png",
+    "front": "assets/badges/ch06-lake-courier/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 6,
+    "angles": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "status": "todo"
+  },
+  {
+    "id": "ch07-tea-reunion",
+    "chapter": 7,
+    "chapterTitle": "同桌的茶",
+    "name": "百年茶緣",
+    "description": "完成「同桌的茶」後獲得此紀念物。",
+    "sprite": "assets/badges/ch07-tea-reunion/sprite.png",
+    "front": "assets/badges/ch07-tea-reunion/front.png",
+    "frameWidth": 543,
+    "frameHeight": 724,
+    "frameCount": 6,
+    "angles": [
+      0,
+      60,
+      120,
+      180,
+      240,
+      300
+    ],
+    "status": "todo"
+  }
+]

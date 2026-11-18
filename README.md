@@ -7,6 +7,11 @@
 
 ## 變更紀錄
 
+### 2026-11-19 02:28（UTC+8）｜建立七章徽章素材庫
+
+- 新增 [章節徽章素材庫](assets/badges/)，收錄第一章與第三章素材、圖集規格及章節索引。
+- 執行 `npm run badge:build -- <章節資料夾名>` 產出圖集與正面圖。安裝 FFmpeg 的環境也可編製預覽影片。執行 `npm run badge:check` 驗證已完成素材。
+
 ### 2026-11-18 19:53（UTC+8）｜第一章載入卡住修正
 
 - 作者／分支為 IvanTsai／`fix/chapter-01-loading`，版本為 `chapter-01-loading-1`。
