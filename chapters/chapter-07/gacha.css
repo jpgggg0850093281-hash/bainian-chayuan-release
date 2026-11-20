@@ -1,0 +1,98 @@
+@font-face {
+  font-family: Cubic;
+  src: url("../../assets/Cubic_11.woff2") format("woff2");
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  font: 16px/1.5 Cubic, system-ui, sans-serif;
+  color: #f7e6bd;
+  background: #0c1b16;
+  --gold: #c5a05e;
+  --panel: #12271e;
+}
+
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: max(12px, env(safe-area-inset-top)) max(8px, env(safe-area-inset-right))
+    max(12px, env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+}
+
+main { width: min(100%, max(480px, var(--stage-width, 480px))); }
+header { position: relative; text-align: center; margin-bottom: 12px; }
+h1 { font-size: clamp(24px, 5vw, 34px); margin: 0; }
+header a { display: inline-block; padding: 10px 8px; color: #f1cf89; }
+.stage {
+  position: relative;
+  overflow: hidden;
+  outline: 1px solid var(--gold);
+  background: var(--panel);
+}
+
+canvas {
+  display: block;
+  position: relative;
+  left: 50%;
+  width: max(480px, 100%);
+  transform: translateX(-50%);
+  image-rendering: pixelated;
+}
+.controls {
+  min-height: 128px;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  text-align: center;
+}
+
+.controls p { margin: 12px 0; padding: 0 8px; }
+button {
+  font: inherit;
+  min-height: 48px;
+  padding: 6px 18px;
+  border: 1px solid var(--gold);
+  border-radius: 0;
+  color: #ffe6a8;
+  background: #254437;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:focus-visible, a:focus-visible { outline: 2px solid #ffe6a8; outline-offset: 3px; }
+button:disabled { color: #c5ae86; background: #243029; cursor: default; }
+#handle {
+  position: absolute;
+  left: 50%;
+  top: 68%;
+  transform: translate(-50%, -50%);
+  width: max(48px, 12%);
+  aspect-ratio: 1;
+  background: transparent;
+  border-color: #ffe2a6;
+  padding: 0;
+}
+
+dialog {
+  width: min(420px, calc(100% - 40px));
+  max-height: calc(100% - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  padding: 20px;
+  color: inherit;
+  text-align: center;
+  background: var(--panel);
+  border: 1px solid var(--gold);
+  box-shadow: 0 0 0 4px #0b1e17;
+}
+
+dialog::backdrop { background: #06110cbb; }
+dialog h2 { margin: 0 0 16px; font-size: 22px; color: #ffe6a8; }
+dialog h3 { margin: 6px 0; }
+dialog img { image-rendering: pixelated; }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
