@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>祭典扭蛋機｜百年茶緣</title>
+  <link rel="stylesheet" href="gacha.css">
+  <script defer src="gacha.js"></script>
+</head>
+<body>
+  <main>
+    <header>
+      <a href="index.html">‹ 返回第七章</a>
+      <h1>祭典扭蛋機</h1>
+    </header>
+    <div class="stage">
+      <canvas width="480" height="270" aria-label="扭蛋機動畫"></canvas>
+      <button id="handle" type="button" aria-label="轉動把手" hidden></button>
+    </div>
+    <div class="controls">
+      <p id="status" aria-live="polite"></p>
+      <button id="action" type="button" hidden></button>
+    </div>
+  </main>
+  <dialog id="announcement" aria-labelledby="announcement-title">
+    <h2 id="announcement-title">七枚徽章集齊了，祭典的扭蛋機開放了</h2>
+    <button id="start" type="button">前往扭蛋機</button>
+  </dialog>
+  <dialog id="award" aria-labelledby="award-title">
+    <h2 id="award-title">恭喜中獎！</h2>
+    <img id="prize-image" width="96" height="96" alt="">
+    <h3 id="prize-name"></h3>
+    <p id="prize-description"></p>
+    <div class="dialog-actions">
+      <button id="accept" type="button">收下</button>
+      <button id="again" type="button">再抽一次</button>
+    </div>
+  </dialog>
+</body>
+</html>
