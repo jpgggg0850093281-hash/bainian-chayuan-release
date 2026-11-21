@@ -3,16 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>第2章 乾日的水路｜百年茶緣</title>
+  <meta name="color-scheme" content="dark">
+  <title>百年茶緣｜乾日的水路</title>
+  <link rel="stylesheet" href="../../style.css">
   <link rel="stylesheet" href="chapter.css">
+  <script src="../../src/assets/player.js" defer></script>
   <script src="chapter.js" defer></script>
 </head>
 <body>
-  <main>
-    <h1>第2章 乾日的水路</h1>
-    <p>製作中</p>
-    <button type="button" id="complete-chapter">完成本章(測試用)</button>
-    <p id="chapter-status" role="status"></p>
+  <main class="loading">
+    <canvas id="scene" tabindex="0" role="img" aria-label="魚池茶鄉像素風景。沿石路可到阿仁伯身旁和水車水閘。"></canvas>
+    <canvas id="hero-layer" aria-hidden="true"></canvas>
+    <header class="scene-heading">
+      <p>魚池茶鄉</p>
+      <h1>百年茶緣</h1>
+      <p id="chapter-caption" class="letter">第二章・乾日的水路</p>
+    </header>
+    <p id="garden-guide" class="interaction-instruction garden-guide" role="status" hidden></p>
+    <div id="scene-targets" class="scene-targets" aria-label="可互動地點"></div>
+    <section id="chapter-panel" class="chapter-panel" aria-labelledby="chapter-speaker">
+      <header>
+        <h2 id="chapter-speaker" tabindex="-1">目前任務</h2>
+        <button type="button" id="close-chapter" class="close-chapter" aria-label="關閉對話">×</button>
+      </header>
+      <p id="chapter-line" role="status">到石路上找阿仁伯，看看乾旱後茶園還剩多少水。</p>
+      <div id="chapter-actions" class="chapter-actions"></div>
+    </section>
+    <p id="scene-status" role="status" class="status">茶鄉風景載入中</p>
+    <section class="scene-controls" aria-label="場景光影">
+      <div class="weather" aria-label="選擇天候">
+        <button type="button" data-weather="morning" aria-pressed="true">清晨</button>
+        <button type="button" data-weather="rain" aria-pressed="false">微雨</button>
+        <button type="button" data-weather="dusk" aria-pressed="false">暮色</button>
+      </div>
+      <div class="scene-utilities">
+        <button type="button" id="story-book" class="motion" aria-controls="chapter-panel">故事</button>
+        <button type="button" id="current-quest" class="motion" aria-controls="chapter-panel" aria-expanded="true">目前任務</button>
+        <button type="button" id="coin-book" class="motion" aria-controls="chapter-panel">紀念幣 <span id="coin-total">0／1</span></button>
+        <button type="button" id="motion" class="motion" aria-pressed="false">暫停動態</button>
+      </div>
+    </section>
   </main>
+  <dialog id="field-view" class="immersive-dialog" aria-labelledby="field-title">
+    <header>
+      <h2 id="field-title" tabindex="-1"></h2>
+      <form method="dialog"><button aria-label="返回石路">×</button></form>
+    </header>
+    <p id="field-instruction" class="interaction-instruction" role="status"></p>
+    <div id="field-content"></div>
+    <div id="field-actions" class="chapter-actions"></div>
+  </dialog>
+  <dialog id="valve-workbench" class="immersive-dialog valve-workbench" aria-labelledby="valve-title">
+    <header>
+      <h2 id="valve-title" tabindex="-1">水車水閘・修理台</h2>
+      <form method="dialog"><button aria-label="暫離修理台">×</button></form>
+    </header>
+    <p class="interaction-instruction" id="valve-instruction" role="status"></p>
+    <div id="valve-machine" class="valve-machine" aria-label="水閥零件與水路">
+      <div class="valve-pipe" aria-hidden="true"></div>
+      <button id="valve-wheel" type="button" class="valve-wheel">總閥</button>
+      <button id="valve-seat" type="button" class="valve-seat">接合處</button>
+      <div class="valve-bolts" aria-label="四顆固定螺帽">
+        <button type="button" data-bolt="0" aria-label="左上螺帽">1</button>
+        <button type="button" data-bolt="1" aria-label="右上螺帽">2</button>
+        <button type="button" data-bolt="3" aria-label="左下螺帽">4</button>
+        <button type="button" data-bolt="2" aria-label="右下螺帽">3</button>
+      </div>
+      <span class="valve-drip" aria-hidden="true"></span>
+    </div>
+    <div id="valve-parts" class="valve-parts" hidden>
+      <button type="button" data-gasket="small">窄環</button>
+      <button type="button" data-gasket="fitted">中環</button>
+      <button type="button" data-gasket="large">寬環</button>
+    </div>
+    <div id="valve-channels" class="valve-channels" hidden>
+      <button type="button" id="send-upstream">打開上坡水閘</button>
+      <button type="button" id="send-downstream">打開下游水閘</button>
+      <p>上坡 <strong id="upstream-level">0</strong>　下游 <strong id="downstream-level">0</strong>　剩水 <strong id="water-reserve">6</strong></p>
+      <button type="button" id="reset-water">收回分水</button>
+    </div>
+    <button type="button" id="finish-valve" hidden>確認分水，返回石路</button>
+  </dialog>
 </body>
 </html>
